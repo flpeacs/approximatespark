@@ -46,8 +46,8 @@ review_lengths = sqlContext.sql("select tempo from songs").toDF("tempo").cache()
 
 n = review_lengths.count()
 
-# Define quantiles as 1% (min value), 99% (max value) and 50% (median)
-quantiles = [0.01, 0.99, 0.5]
+# Define quantiles as 0% (min value), 100% (max value) and 50% (median)
+quantiles = [0.0, 1.0, 0.5]
 
 # Run approx quantile
 l = review_lengths.approxQuantile("tempo", quantiles, 0.01)

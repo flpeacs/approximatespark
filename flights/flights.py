@@ -3,7 +3,7 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import math
 
-# Code to parse the dataset available at https://databricks.com/blog/2016/03/16/on-time-flight-performance-with-graphframes-for-apache-spark.html
+#Code to parse the dataset available at https://databricks.com/blog/2016/03/16/on-time-flight-performance-with-graphframes-for-apache-spark.html
 # Set File Paths
 tripdelaysFilePath = "/databricks-datasets/flights/departuredelays.csv"
 airportsnaFilePath = "/databricks-datasets/flights/airport-codes-na.txt"
@@ -50,10 +50,11 @@ tripVertices.cache()
 airport = 'ATL'
 
 # Determine approx quantile errors
-errors = [0.01, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 0.9]
+errors = [0.01, 0.02, 0.03, 0.05, 0.1, 0.15, 0.2]
 table = [["Error", "Time", "min, max, median"]]
 
-a = spark.sql("SELECT delay FROM tripEdges WHERE src = '" + airport + "'").toDF("delay").cache()
+# Simulating a random values picking on a stream
+a = spark.sql("SELECT delay FROM tripEdges WHERE src = '" + airport + "' ORDER BY RAND(5000)").toDF("delay").cache()
 
 # Calculate max, min and median delays of example airport for various different approx error values
 for i in range(len(errors)):
@@ -79,7 +80,8 @@ table = [["Error", "Time", "Number of airports"]]
 # Determine approx count errors
 errors = [0.01, 0.02, 0.03, 0.05, 0.1, 0.15, 0.2]
   
-a = spark.sql("SELECT src FROM tripEdges").toDF("src").cache()  
+# Simulating a random values picking on a stream
+a = spark.sql("SELECT src FROM tripEdges ORDER BY RAND(5000)").toDF("src").cache()  
 
 # Calculate approx count of different airports available
 for i in range(len(errors)):
@@ -103,23 +105,23 @@ for i in range(len(table)):
 # Define a maxDelay threshold that is going to be used to calculate the percentage of delayed flights that exceed more than maxDelay minutes to depart
 maxDelay = 100
 
-a = spark.sql("SELECT delay FROM tripEdges WHERE src = '" + airport + "'").toDF("delay").cache()
+# Simulating a random values picking on a stream
+a = spark.sql("SELECT delay FROM tripEdges WHERE src = '" + airport + "' ORDER BY RAND(5000)").toDF("delay").cache()
 
 # Determine approx quantile errors
-errors = [0.01, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 0.9]
+errors = [0.01, 0.02, 0.03, 0.05, 0.1, 0.15, 0.2]
 table = [["Error", "Time", "Percentage of delayed flights that exceed more than maxDelay minutes to depart"]]
 
 for i in range(len(errors)):
   table.append([])
   
-  start = time.time()  
-  
   l = 0.00
   r = 1.0
-  it = 10000
-
+  
+  start = time.time()  
+    
   # Calculate the percentage of delayed flights that exceed more than maxDelay minutes to depart using binary search and approx Quantile
-  while l < r and r - l > 0.00001 and it > 0:
+  while r - l > 0.00001:
     m = (l + r) / 2.0
       
     b = a.approxQuantile("delay", [m], errors[i])[0]
@@ -128,9 +130,7 @@ for i in range(len(errors)):
       l = m
     else:
       r = m
-    
-    it = it - 1
-    
+        
   c = time.time() - start
   
   table[i + 1].append(errors[i])

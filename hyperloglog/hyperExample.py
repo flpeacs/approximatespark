@@ -41,7 +41,7 @@ review_lengths = sqlContext.sql("select tempo from songs").toDF("tempo").cache()
 
 n = review_lengths.count()
 
-rsds = np.logspace(-1.0, -5.0, num=30)
+# Determine approx errors
 rsds = np.logspace(-1.0, -2.5, num=20)
 
 # Define approx count based on time variable and calculate execution time

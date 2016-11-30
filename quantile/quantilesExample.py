@@ -2,6 +2,8 @@ import numpy as np
 import time
 import math
 import pandas as pd
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
 
 #Parsing extracted from https://docs.cloud.databricks.com/docs/latest/sample_applications/06%20Sample%20Data%20Pipeline/Python/Stage%201:%20ETL.html
 def parseLine(line):

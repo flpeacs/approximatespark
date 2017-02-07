@@ -11,3 +11,5 @@ This repository contains some applications that demonstrate two Spark approximat
 **/twitter** contains an example of tweets streaming on Spark. The main goal of this example is to get an ideia how we should proceed to get streaming data that may be associated with approximation methods. Current application calculates the top hashtags on Twitter given a time window. 
 
 To run above examples, go to [www.databricks.com], sign up for a community account, paste the codes on Databricks notebooks and run them on a Spark 2.0+ cluster (for the first 3 applications) or Spark 1.6.2 with Hadoop 1 (for Twitter application).
+
+**/ch08-geotime** contains an application calculates the average duration of taxi rides that depart from a given NYC region in a given hour of the day.

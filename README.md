@@ -13,3 +13,5 @@ This repository contains some applications that demonstrate two Spark approximat
 To run above examples, go to [www.databricks.com], sign up for a community account, paste the codes on Databricks notebooks and run them on a Spark 2.0+ cluster (for the first 3 applications) or Spark 1.6.2 with Hadoop 1 (for Twitter application).
 
 **/ch08-geotime** contains an application that calculates the average duration of taxi rides that depart from a given NYC region in a given hour of the day.
+
+**/pearson** contains an application that calculates the Pearson correlation coefficient between the length of Amazon movies reviews and their helpfulness. 

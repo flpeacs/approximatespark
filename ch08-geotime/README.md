@@ -8,7 +8,7 @@ Spark Version: 2.1.0 with Hadoop 2.7
 
 Java Version: 1.8
 
-**src/main/scala/com/cloudera/datascience/geotime/RunGeoTime.scala** calculates the average duration of taxi rides that depart from a given NYC region in a given hour of the day. Code uses dataframes to perform operations.
+**src/main/scala/com/cloudera/datascience/geotime/RunGeoTime.scala** calculates the average duration of taxi rides that depart from a given NYC region in a given hour of the day.
 
 Running the application:
 

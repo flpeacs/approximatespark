@@ -39,23 +39,19 @@ object RunGeoTime extends Serializable {
     import spark.implicits._
     val taxiRaw = spark.read.option("header", "true").csv("taxidata")
     val taxiParsed = taxiRaw.rdd.map(safe(parse))
-    val taxiGood = taxiParsed.map(_.left.get).toDS
+    val taxiGood = taxiParsed.map(_.left.get)
     taxiGood.cache()	
 
     val hours = (pickup: Long, dropoff: Long) => {
       TimeUnit.HOURS.convert(dropoff - pickup, TimeUnit.MILLISECONDS)
     }
 
-    val hoursUDF = udf(hours)
-    taxiGood.groupBy(hoursUDF($"pickupTime", $"dropoffTime").as("h")).count().sort("h")
-
-    spark.udf.register("hours", hours)
-    val taxiClean = taxiGood.where("hours(pickupTime, dropoffTime) >= 0")
+    taxiGood.filter(x => x.dropoffX != 0).filter(x => x.dropoffY != 0).filter(x => x.pickupX != 0).filter(x => x.pickupY != 0).filter(x => hours(x.pickupTime, x.dropoffTime) >= 0)
 
     val geojson = scala.io.Source.fromURL(this.getClass.getResource("/nyc-city_council.geojson")).mkString
 
     val bFeatures = spark.sparkContext.broadcast(geojson.parseJson.convertTo[FeatureCollection])
-  
+
     val bLookup = (x: Double, y: Double) => {
       val feature: Option[Feature] = bFeatures.value.find(f => {
         f.geometry.contains(new Point(x, y))
@@ -64,15 +60,12 @@ object RunGeoTime extends Serializable {
         f("CounDist").convertTo[String]
       }).getOrElse("NA")
     }
+    	    
+    val countsByKey = taxiGood.map(p => ((bLookup(p.dropoffX, p.dropoffY).toString, ((p.pickupTime % 86400) / 3600).toString), (p.dropoffTime - p.pickupTime).toDouble)).countByKey
 
-    val taxiDone = taxiClean.where("dropoffX != 0 and dropoffY != 0 and pickupX != 0 and pickupY != 0")
-    taxiGood.unpersist()
-	    
-    val boroughDurations = taxiDone.map(p => (bLookup(p.dropoffX, p.dropoffY), (p.pickupTime % 86400) / 3600, p.dropoffTime - p.pickupTime)).toDF("borough", "pickup", "count")
-
-    boroughDurations.orderBy("borough", "pickup").groupBy("borough", "pickup").agg(avg("count")).show()
+    val boroughDurations = taxiGood.map(p => ((bLookup(p.dropoffX, p.dropoffY).toString, ((p.pickupTime % 86400) / 3600).toString), (p.dropoffTime - p.pickupTime).toDouble)).reduceByKey(_ + _).map({case(a, b) => (a, b / countsByKey(a))}).sortByKey().foreach(println)
 	
-    boroughDurations.unpersist()
+    taxiGood.unpersist()
   }
 
   def safe[S, T](f: S => T): S => Either[T, (S, Exception)] = {
